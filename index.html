@@ -698,39 +698,44 @@
         window.addEventListener('DOMContentLoaded', () => {
             fetchBildDerWoche();
             renderWizard();
+            preloadQuizImages();
         });
+
+        function preloadQuizImages() {
+            if (typeof customQuizData !== 'undefined') {
+                customQuizData.forEach(data => {
+                    const img = new Image();
+                    img.src = data.image; // Forces browser to download and cache the image immediately
+                });
+            }
+        }
 
         // --- KI Dialog Wizard Logic ---
         const wizardData = [
             {
                 title: "1. CHECK VISUELLES",
                 rule: "Schauen Sie sich Details genau an: Hände, Gesichtszüge, Frisur, Alter, Schattenwurf, Kleidung und Accessoires. Sind Kontraste logisch? Gibt es sonstige Auffälligkeiten?",
-                image: "assets/visuelles.png",
-                imgAlt: "Beispiel: Hand mit sechs Fingern"
+                icon: "👁️"
             },
             {
                 title: "2. CHECK QUELLE",
                 rule: "Woher stammt das Bild? Gibt es andere Fotos zum gleichen Thema? Wer hat es aufgenommen (Fotograf/in)? Wann und wo wurde es das erste Mal publiziert?",
-                image: "assets/quelle.png",
-                imgAlt: "Beispiel: Lupe auf einem Foto"
+                icon: "🔎"
             },
             {
                 title: "3. CHECK FAKTEN",
                 rule: "Stimmt das, was man sieht, mit dem überein, was man eigentlich weiss? Prüfen Sie Ereignis, Personen, Datum, Örtlichkeit und sogar das Wetter.",
-                image: "assets/fakten.png",
-                imgAlt: "Beispiel: Schnee auf den Pyramiden"
+                icon: "🧠"
             },
             {
                 title: "4. CHECK KONTEXT",
                 rule: "Ist das, was man sieht, logisch nachvollziehbar? Was sagt der gesunde Menschenverstand oder einfach das Bauchgefühl?",
-                image: "assets/kontext.png",
-                imgAlt: "Beispiel: Baum mit unlogischen Schatten"
+                icon: "🧩"
             },
             {
                 title: "5. CHECK MIT TECHNISCHEN HILFSMITTELN",
                 rule: "Nutzen Sie Tools, um Bilder zu überprüfen. Achten Sie auf Wasserzeichen bei echten Fotos und nutzen Sie zur Not eine Bilder-Rücksuche mit Google.",
-                image: "assets/technische.png",
-                imgAlt: "Beispiel: Google Reverse Image Search"
+                icon: "💻"
             }
         ];
 
@@ -761,13 +766,10 @@
             resultDiv.style.display = "none";
             
             container.innerHTML = `
-                <div class="wizard-step" style="animation: fadeIn 0.4s;">
-                    <h4 style="color: var(--accent); margin-top:0; font-size: 1.2rem;">${step.title}</h4>
+                <div class="wizard-step" style="animation: fadeIn 0.4s; text-align: center;">
+                    <div style="font-size: 4rem; margin: 1rem 0; line-height: 1;">${step.icon}</div>
+                    <h4 style="color: var(--accent); margin-top: 0.5rem; font-size: 1.2rem;">${step.title}</h4>
                     <p style="font-size: 1.1rem; line-height: 1.5;">${step.rule}</p>
-                    <div class="wizard-image-wrapper">
-                        <img src="${step.image}" alt="${step.imgAlt}" onerror="this.onerror=null; this.alt='Beispielbild wird geladen...';" />
-                        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">Beispielgrafik: ${step.title}</div>
-                    </div>
                 </div>
             `;
         }
