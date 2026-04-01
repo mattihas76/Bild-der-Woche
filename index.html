@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Learning - Bild der Woche</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 4rem;
+            padding-bottom: 4rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(to right, #e0f2fe, #7dd3fc, #38bdf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .content-area {
+            position: relative;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--glass-border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            display: none;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            text-align: center;
+        }
+
+        #article-content {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .article-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: #ffffff;
+            margin: 0;
+            text-align: center;
+        }
+
+        .article-image-container {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .article-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .article-image:hover {
+            transform: scale(1.02);
+        }
+
+        .article-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-align: center;
+            display: inline-block;
+            transition: color 0.2s;
+        }
+
+        .article-link:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        /* KI Dialog Wizard CSS */
+        .wizard-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+            margin-top: 1.5rem;
+        }
+
+        .wizard-step {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .wizard-image-wrapper {
+            margin-top: 1.5rem;
+            text-align: center;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+        }
+
+        .wizard-image-wrapper img {
+            max-width: 100%;
+            height: auto;
+            max-height: 280px;
+            display: inline-block;
+            border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .wizard-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .checklist-result {
+            background: rgba(74, 222, 128, 0.05);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .checklist-result h4 {
+            color: #4ade80;
+            margin-top: 0;
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .checklist-result ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .checklist-result li {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .checklist-result li::before {
+            content: "✓";
+            color: #4ade80;
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+
+        .article-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-top: 1rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent);
+            display: none;
+        }
+        .article-text p {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+        .article-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .question-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+            margin-top: 1rem;
+        }
+
+        .question-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #f8fafc;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        textarea::placeholder {
+            color: rgba(203, 213, 225, 0.4);
+        }
+
+        .btn-submit {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .success-message {
+            display: none;
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            text-align: center;
+            margin-top: 1rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* Druck-Layout */
+        @media print {
+            body { background: #fff; color: #000; padding: 0; margin: 0; }
+            .container { box-shadow: none; border: none; background: transparent; padding: 0; margin: 0; }
+            header, .loader, .error-message, #article-image-container, #article-wrapper, .question-section, #ki-wizard, .hide-print { display: none !important; }
+            #result-page { display: block !important; border: none !important; margin: 0 !important; }
+            #result-page * { color: #000 !important; border-color: #ccc !important; text-shadow: none !important; }
+            h1, h2, h3, h4 { -webkit-text-fill-color: #000; background: none; color: #000; }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .question-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Bild der Woche</h1>
+            <div class="subtitle">News Learning Plattform</div>
+        </header>
+
+        <div class="content-area">
+            <div class="loader" id="loader">
+                <div class="spinner"></div>
+                <div>Lade die neuesten Nachrichten...</div>
+            </div>
+
+            <div class="error-message" id="error-message">
+                Fehler beim Laden der Inhalte. Bitte versuchen Sie es später erneut.
+            </div>
+
+            <div id="article-content">
+                <h2 class="article-title" id="article-title">Titel lädt...</h2>
+                <div class="article-image-container">
+                    <img id="article-image" class="article-image" src="" alt="Bild der Woche">
+                </div>
+                
+                <div class="question-section" style="margin-top: 1rem;">
+                    <h3 class="question-title">Aufgabe 1: Bildbeschreibung</h3>
+                    <p class="question-text">
+                        <strong>Beschreiben Sie in zwei bis drei vollständigen Sätzen, was Sie auf dem Bild sehen.</strong><br>
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">Der Artikel zum Bild wird erst freigeschaltet, wenn Sie hier Ihre Wahrnehmung festhalten.</span>
+                    </p>
+                    <textarea id="student-answer" placeholder="Ihre Antwort hier eingeben..." oninput="checkUnlockInputs()" onpaste="return false;" oncopy="return false;" oncut="return false;" autocomplete="off"></textarea>
+                </div>
+
+                <div class="question-section" style="margin-top: 1rem;">
+                    <h3 class="question-title">Aufgabe 2: Kontext vermuten</h3>
+                    <p class="question-text">
+                        <strong>Was denken Sie, in welchem Kontext (Thema, Land, Situation) dieses Foto entstanden ist?</strong><br>
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">Der Artikel wird erst freigeschaltet, wenn Sie beide Aufgaben bearbeitet haben.</span>
+                    </p>
+                    <textarea id="student-guess" placeholder="Ich vermute, es geht um..." oninput="checkUnlockInputs()" onpaste="return false;" oncopy="return false;" oncut="return false;" autocomplete="off"></textarea>
+                    
+                    <button class="btn-submit" style="margin-top: 1rem;" onclick="submitAnswer()">Antworten speichern</button>
+                    <div id="success-msg" class="success-message">Ihre Antworten wurden gespeichert!</div>
+                </div>
+
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <button id="btn-show-article" class="btn-primary" onclick="showArticle()" disabled style="opacity: 0.5; cursor: not-allowed; width: 100%; max-width: 400px; padding: 1rem; transition: all 0.3s;">🔒 Artikel freischalten (Gesperrt)</button>
+                </div>
+
+                <div id="article-wrapper" style="display: none; animation: fadeIn 0.6s ease-out; margin-top: 1.5rem; margin-bottom: 2rem;">
+                    <div id="article-text" class="article-text" style="display: block;"></div>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <a id="article-link" class="article-link" href="#" target="_blank">Originalartikel auf usethenews.ch lesen</a>
+                    </div>
+                </div>
+                    
+                <div class="question-section" style="margin-top: 2rem; border-color: var(--accent); background: rgba(56, 189, 248, 0.05);">
+                    <h3 class="question-title" style="color: var(--accent);">Aufgabe 3: Artikel-Zusammenfassung</h3>
+                    <p class="question-text">
+                        <strong>Schreiben Sie jetzt eine kurze Zusammenfassung des Artikels in Ihren eigenen Worten.</strong><br>
+                        <span style="font-size: 0.9rem; color: var(--text-muted);">Die Zusammenfassung muss aus <strong>mindestens 5 Sätzen</strong> bestehen (mit Punkten am Ende!), bevor Sie die folgenden KI-Aufgaben bearbeiten können.</span>
+                    </p>
+                    <textarea id="student-summary" placeholder="Der Artikel handelt von..." oninput="checkSummaryInput()" style="min-height: 120px;" onpaste="return false;" oncopy="return false;" oncut="return false;" autocomplete="off" disabled style="opacity:0.5; cursor:not-allowed;"></textarea>
+                    
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <button id="btn-unlock-advanced" class="btn-primary" onclick="unlockAdvancedTasks()" disabled style="opacity: 0.5; cursor: not-allowed; width: 100%; max-width: 400px; padding: 1rem; transition: all 0.3s; background-color: var(--muted);">🔒 Antwort speichern (0/5 Sätze)</button>
+                    </div>
+                </div>
+
+                <!-- Advanced Tasks Wrapper -->
+                <div id="advanced-tasks" style="margin-top: 2rem;">
+
+                <div class="wizard-section" id="ki-wizard">
+                    <h3 style="color: #38bdf8; margin-bottom: 1.5rem;">Aufgabe 4: KI-Bild-Analyse Dialog</h3>
+                    <p class="question-text">Können Sie ein manipuliertes oder KI-generiertes Bild von einem echten Foto unterscheiden? Führen Sie die folgenden 5 Checks durch und erstellen Sie sich so Ihre Checkliste.</p>
+                    
+                    <div id="wizard-steps-container">
+                        <!-- Steps will be injected here by JS -->
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button id="btn-show-all" class="btn-secondary adv-lock" onclick="showAllSteps()" disabled style="opacity: 0.5; cursor: not-allowed;">Zeige alle Checks auf einmal an</button>
+                        <button id="btn-next" class="btn-primary adv-lock" onclick="nextStep()" disabled style="opacity: 0.5; cursor: not-allowed;">Starten</button>
+                    </div>
+
+                    <!-- Final Checklist (Self-written) -->
+                    <div id="wizard-result" style="display:none;" class="checklist-result">
+                        <h4 style="color: #38bdf8; margin-bottom: 1rem; text-align: left;">Ihre persönliche Checkliste</h4>
+                        <p class="question-text" style="color: var(--text-main); font-weight: normal; margin-bottom: 1.5rem; line-height: 1.6; text-align: left;">
+                            Sie haben nun verschiedene Methoden zur Bildanalyse kennengelernt. <strong>Schreiben Sie jetzt Ihre eigene Checkliste!</strong> Notieren Sie in eigenen Worten die 3 bis 5 wichtigsten Punkte, auf die Sie künftig bei Bildern im Internet achten werden.
+                        </p>
+                        <textarea id="student-checklist" class="adv-lock" disabled style="opacity: 0.5; cursor: not-allowed;" placeholder="- Hände und Finger genau anschauen...&#10;- Nach logischen Fehlern bei Schatten suchen...&#10;- Quelle oder Wasserzeichen prüfen..." onpaste="return false;" oncopy="return false;" oncut="return false;" autocomplete="off"></textarea>
+                    </div>
+                </div>
+
+                <div class="question-section" id="aufgabe3-quiz">
+                    <h3 class="question-title" style="margin-bottom: 1.5rem;">Aufgabe 5: Fake oder Real?</h3>
+                    <p class="question-text">
+                        Wenden Sie nun Ihr Wissen praktisch an! Schauen Sie sich die folgenden Bilder genau an. Sind sie echt oder von einer KI generiert?
+                    </p>
+                    
+                    <div id="custom-quiz-container" style="background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; padding: 2rem; text-align: center; position: relative; margin-top: 1.5rem;">
+                        <div id="quiz-progress" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; font-weight: 600;">Bild 1 von 4</div>
+                        
+                        <div id="quiz-image-wrapper" style="margin-bottom: 1.5rem; height: 350px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                            <img id="quiz-image" src="" alt="Quiz Bild" style="max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); object-fit: contain;">
+                        </div>
+
+                        <div id="quiz-buttons" style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem;">
+                            <button class="btn-secondary adv-lock" onclick="guessQuiz(false)" disabled style="flex: 1; max-width: 200px; opacity: 0.5; cursor: not-allowed;">📸 Echtes Foto</button>
+                            <button class="btn-primary adv-lock" onclick="guessQuiz(true)" disabled style="flex: 1; max-width: 200px; opacity: 0.5; cursor: not-allowed;">🤖 KI-Generiert</button>
+                        </div>
+
+                        <div id="quiz-feedback" style="display: none; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; padding: 1.5rem; margin-top: 1rem; animation: fadeIn 0.4s ease-out;">
+                            <h4 id="quiz-feedback-title" style="margin-top: 0; font-size: 1.25rem;">Richtig!</h4>
+                            <p id="quiz-feedback-text" style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">Die KI hat bei den Händen gepatzt...</p>
+                            <button id="quiz-next-btn" class="btn-primary" onclick="nextQuizStep()">Nächstes Bild ➔</button>
+                        </div>
+                        
+                        <div id="quiz-result-screen" style="display: none; padding: 2rem 0;">
+                            <h3 style="color: #38bdf8; font-size: 1.8rem; margin-bottom: 0.5rem;">Quiz beendet!</h3>
+                            <p style="font-size: 1.2rem; color: var(--text-main);">Ihr Ergebnis: <strong id="quiz-final-score">0</strong> von <strong id="quiz-total-score">8</strong> richtig.</p>
+                            <p style="color: var(--text-muted); margin-bottom: 2rem;">Gut gemacht! Überprüfen Sie Bilder in Zukunft immer genau auf die 5 Checks.</p>
+                            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                                <button class="btn-secondary adv-lock" onclick="restartQuiz()" disabled style="padding: 1rem 2rem; opacity: 0.5; cursor: not-allowed;">🔄 Quiz neustarten</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Always Visible Export Button Section -->
+                <div class="question-section" id="export-section" style="margin-top: 2rem; text-align: center; border: 1px solid var(--accent); background: rgba(56, 189, 248, 0.05);">
+                    <h3 class="question-title" style="color: var(--accent);">Abschluss & PDF Export</h3>
+                    <p class="question-text" style="margin-bottom: 1.5rem;">Haben Sie alle Aufgaben bearbeitet? Exportieren Sie eine saubere Zusammenfassung Ihrer Bildbeschreibung, Ihrer Zusammenfassung und das Quiz-Resultat als PDF für Ihre Unterlagen.</p>
+                    <button class="btn-primary adv-lock" onclick="window.print()" disabled style="font-size: 1.2rem; padding: 1rem 2rem; opacity: 0.5; cursor: not-allowed;">🖨️ Als PDF speichern / Drucken</button>
+                </div>
+
+                </div> <!-- End of advanced-tasks wrapper -->
+
+                <!-- Result Page for PDF Print (Hidden on screen via inline style, visible only in print) -->
+                <div id="result-page" style="display: none; background: #fff; color: #000; border: 1px solid #ccc; border-radius: 12px; padding: 2rem; margin-top: 2rem; text-align: left;">
+                    <h2 style="color: #000; margin-top: 0; border-bottom: 2px solid #000; padding-bottom: 1rem;">Lern-Ergebnisse: Bild der Woche</h2>
+                    
+                    <h3 style="margin-top: 1.5rem; color: #000;">Ihre Bildbeschreibung (Aufgabe 1)</h3>
+                    <div style="padding: 1.5rem; border-radius: 8px; border-left: 4px solid #000; color: #000; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap;" id="print-task1-answer"></div>
+
+                    <h3 style="margin-top: 2rem; color: #000;">Ihre Kontext-Vermutung (Aufgabe 2)</h3>
+                    <div style="padding: 1.5rem; border-radius: 8px; border-left: 4px solid #000; color: #000; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap;" id="print-task2-guess"></div>
+
+                    <h3 style="margin-top: 2rem; color: #000;">Artikel-Zusammenfassung (Aufgabe 3)</h3>
+                    <div style="padding: 1.5rem; border-radius: 8px; border-left: 4px solid #000; color: #000; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap;" id="print-task3-summary"></div>
+
+                    <h3 style="margin-top: 2rem; color: #000;">Ihre persönliche KI-Checkliste (Aufgabe 4)</h3>
+                    <div style="padding: 1.5rem; border-radius: 8px; border-left: 4px solid #000; color: #000; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap;" id="print-task4-checklist"></div>
+
+                    <h3 style="margin-top: 2rem; color: #000;">KI-Quiz Auswertung (Aufgabe 5)</h3>
+                    <div style="padding: 1.5rem; border-radius: 8px; border-left: 4px solid #000; color: #000; font-size: 1.1rem;">
+                        Im Erkennungstest haben Sie <strong id="print-quiz-score" style="font-weight: bold; font-size: 1.2rem; margin: 0 0.4rem;">0/8</strong> Bilder korrekt analysiert!
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use a CORS proxy to fetch the content from another domain
+        async function fetchBildDerWoche() {
+            try {
+                // Lade lokale JSON-Datei (die von fetch_news.py erstellt wird)
+                // Ein Zeitstempel verhindert das Caching im Browser
+                const response = await fetch('news_data.json?t=' + new Date().getTime());
+                
+                if (!response.ok) {
+                    throw new Error("Fehler beim Laden der Bild-Daten. Bitte stelle sicher, dass 'Start_Server.bat' korrekt ausgeführt wurde.");
+                }
+                
+                const data = await response.json();
+                renderContent(data.title, data.imageUrl, data.articleUrl, data.articleText);
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('error-message').innerHTML = "Fehler: " + error.message + "<br><br>Hinweis: Führe <b>Start_Server.bat</b> aus, um die Daten vorab zu laden.";
+            }
+        }
+
+        function renderContent(title, imageUrl, articleUrl, articleText) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('article-content').style.display = 'flex';
+            
+            document.getElementById('article-title').textContent = title || 'Aktuelles Bild der Woche';
+            document.getElementById('article-image').src = imageUrl;
+            document.getElementById('article-link').href = articleUrl;
+
+            if (articleText) {
+                const textContainer = document.getElementById('article-text');
+                textContainer.innerHTML = '';
+                articleText.split('\n\n').forEach(p => {
+                    if (p.trim()) {
+                        const pEl = document.createElement('p');
+                        pEl.textContent = p;
+                        textContainer.appendChild(pEl);
+                    }
+                });
+                textContainer.style.display = 'block';
+            }
+        }
+
+        function submitAnswer() {
+            const answer = document.getElementById('student-answer').value;
+            if (answer.trim() === '') {
+                alert('Bitte geben Sie eine Antwort ein.');
+                return;
+            }
+            
+            // Here you would normally send the data to a backend
+            console.log('Eingereichte Antwort:', answer);
+            
+            // Show success message
+            document.getElementById('success-msg').style.display = 'block';
+        }
+
+        // --- Aufgabe 1 & 2 Article Logic ---
+        function checkUnlockInputs() {
+            const answer = document.getElementById('student-answer').value;
+            const guess = document.getElementById('student-guess') ? document.getElementById('student-guess').value : '';
+            const btn = document.getElementById('btn-show-article');
+            if (answer.trim().length > 5 && guess.trim().length > 5) { 
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.textContent = "🔓 Artikel lesen";
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.textContent = "🔒 Artikel freischalten (Gesperrt)";
+            }
+        }
+
+        function showArticle() {
+            document.getElementById('btn-show-article').style.display = 'none';
+            document.getElementById('article-wrapper').style.display = 'block';
+            
+            const summaryBox = document.getElementById('student-summary');
+            if(summaryBox) {
+                summaryBox.disabled = false;
+                summaryBox.style.opacity = '1';
+                summaryBox.style.cursor = 'text';
+            }
+        }
+
+        // --- Aufgabe 3 Summary Logic ---
+        function checkSummaryInput() {
+            const summaryText = document.getElementById('student-summary').value;
+            const btn = document.getElementById('btn-unlock-advanced');
+            
+            // Ein Satz endet mit Punkt, Ausrufe- oder Fragezeichen. "Wörter" zählen nicht als ganzer Satz.
+            // Split by regex ignoring empty results or single spaces.
+            const rawSentences = summaryText.split(/[.!?]+/).filter(sentence => sentence.trim().length > 3);
+            const sentenceCount = rawSentences.length;
+
+            if (sentenceCount >= 5) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.textContent = "🔓 Antwort speichern";
+                btn.style.backgroundColor = 'var(--accent)';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.textContent = `🔒 Antwort speichern (${sentenceCount}/5 Sätze)`;
+                btn.style.backgroundColor = 'var(--muted)';
+            }
+        }
+
+        let advancedTasksUnlocked = false;
+
+        function unlockAdvancedTasks() {
+            document.getElementById('btn-unlock-advanced').outerHTML = "<p style='color: #4ade80; text-align: center; font-weight: bold;'>✅ Zusammenfassung gespeichert! Die untenstehenden Aufgaben wurden freigeschaltet.</p>";
+            
+            advancedTasksUnlocked = true;
+
+            document.querySelectorAll('.adv-lock').forEach(el => {
+                el.disabled = false;
+                el.style.opacity = '1';
+                el.style.cursor = el.tagName.toLowerCase() === 'button' ? 'pointer' : 'text';
+            });
+            
+            // Re-render to update dynamic quiz buttons immediately
+            renderQuiz();
+
+            const advBox = document.getElementById('advanced-tasks');
+            setTimeout(() => advBox.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+        }
+
+        // Start fetching on load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchBildDerWoche();
+            renderWizard();
+        });
+
+        // --- KI Dialog Wizard Logic ---
+        const wizardData = [
+            {
+                title: "1. CHECK VISUELLES",
+                rule: "Schauen Sie sich Details genau an: Hände, Gesichtszüge, Frisur, Alter, Schattenwurf, Kleidung und Accessoires. Sind Kontraste logisch? Gibt es sonstige Auffälligkeiten?",
+                image: "assets/visuelles.png",
+                imgAlt: "Beispiel: Hand mit sechs Fingern"
+            },
+            {
+                title: "2. CHECK QUELLE",
+                rule: "Woher stammt das Bild? Gibt es andere Fotos zum gleichen Thema? Wer hat es aufgenommen (Fotograf/in)? Wann und wo wurde es das erste Mal publiziert?",
+                image: "assets/quelle.png",
+                imgAlt: "Beispiel: Lupe auf einem Foto"
+            },
+            {
+                title: "3. CHECK FAKTEN",
+                rule: "Stimmt das, was man sieht, mit dem überein, was man eigentlich weiss? Prüfen Sie Ereignis, Personen, Datum, Örtlichkeit und sogar das Wetter.",
+                image: "assets/fakten.png",
+                imgAlt: "Beispiel: Schnee auf den Pyramiden"
+            },
+            {
+                title: "4. CHECK KONTEXT",
+                rule: "Ist das, was man sieht, logisch nachvollziehbar? Was sagt der gesunde Menschenverstand oder einfach das Bauchgefühl?",
+                image: "assets/kontext.png",
+                imgAlt: "Beispiel: Baum mit unlogischen Schatten"
+            },
+            {
+                title: "5. CHECK MIT TECHNISCHEN HILFSMITTELN",
+                rule: "Nutzen Sie Tools, um Bilder zu überprüfen. Achten Sie auf Wasserzeichen bei echten Fotos und nutzen Sie zur Not eine Bilder-Rücksuche mit Google.",
+                image: "assets/technische.png",
+                imgAlt: "Beispiel: Google Reverse Image Search"
+            }
+        ];
+
+        let currentStep = -1;
+
+        function renderWizard() {
+            const container = document.getElementById('wizard-steps-container');
+            const btnNext = document.getElementById('btn-next');
+            const btnPrev = document.getElementById('btn-prev');
+            const resultDiv = document.getElementById('wizard-result');
+            
+            if (currentStep === -1) {
+                container.innerHTML = `<p class="question-text" style="text-align:center; padding: 2rem;">Klicken Sie auf <b>Starten</b>, um sich die 5 wichtigsten Überprüfungs-Schritte anzueignen.</p>`;
+                btnNext.textContent = "Starten";
+                resultDiv.style.display = "none";
+                return;
+            }
+            
+            if (currentStep >= wizardData.length) {
+                container.innerHTML = "";
+                btnNext.style.display = "none";
+                showChecklist();
+                return;
+            }
+            
+            const step = wizardData[currentStep];
+            btnNext.textContent = currentStep === wizardData.length - 1 ? "Checkliste abschliessen" : "Weiterer Check";
+            resultDiv.style.display = "none";
+            
+            container.innerHTML = `
+                <div class="wizard-step" style="animation: fadeIn 0.4s;">
+                    <h4 style="color: var(--accent); margin-top:0; font-size: 1.2rem;">${step.title}</h4>
+                    <p style="font-size: 1.1rem; line-height: 1.5;">${step.rule}</p>
+                    <div class="wizard-image-wrapper">
+                        <img src="${step.image}" alt="${step.imgAlt}" onerror="this.onerror=null; this.alt='Beispielbild wird geladen...';" />
+                        <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">Beispielgrafik: ${step.title}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function nextStep() {
+            currentStep++;
+            renderWizard();
+        }
+
+        function showChecklist() {
+            const resultDiv = document.getElementById('wizard-result');
+            resultDiv.style.display = "block";
+            resultDiv.style.animation = "fadeIn 0.6s ease-out";
+            
+            setTimeout(() => resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        }
+
+        // --- KI vs Real Custom Quiz Logic ---
+        const customQuizData = [
+            {
+                image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop",
+                isAi: false,
+                explanation: "Dieses Bild ist echt! Das Porträt besticht durch eine völlig natürliche Hautstruktur, asymmetrische Poren und eine makellose Schärfentiefe ohne das typische 'Plastik-Aussehen' von KIs."
+            },
+            {
+                image: "assets/friends_fake.png",
+                isAi: true,
+                explanation: "KI-generiert! (Check: Visuelles). Gehen Sie ganz nah an die Gesichter heran: Die Zähne der Personen verschmelzen teilweise miteinander auf eine unnatürliche Weise und kleine Details wie Ohrringe sind verwischt. Typische KI-Schwächen!"
+            },
+            {
+                image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&auto=format&fit=crop",
+                isAi: false,
+                explanation: "Dieses Bild ist echt! Eine reale Landschaftsaufnahme. Die Geometrie der Berge, klare Kanten und natürliche Schattenverläufe sind für eine KI sehr schwer bis ins letzte Detail physikalisch korrekt zu erzeugen."
+            },
+            {
+                image: "assets/protest_fake.png",
+                isAi: true,
+                explanation: "KI-generiert! (Check: Kontext & Visuelles). Die Leute sehen täuschend echt aus, aber achten Sie auf die Pappschilder: Der Text darauf besteht aus völlig sinnlosen Kombinationen. Echte Schrift ist aktuell einer der besten Wege, KI-Bilder zu entlarven!"
+            },
+            {
+                image: "https://images.unsplash.com/photo-1518398046578-8cca57782e17?w=800&auto=format&fit=crop",
+                isAi: false,
+                explanation: "Dieses Bild ist echt! Bei komplexen Architekturaufnahmen scheitert KI extrem häufig an perfekten, endlos fortlaufenden geraden Linien und konsistenter Perspektive. Dieses symmetrische Foto ist physikalisch völlig korrekt."
+            },
+            {
+                image: "assets/lake_fake.png",
+                isAi: true,
+                explanation: "KI-generiert! (Check: Fakten & Physik). Auf den ersten Blick makellos, doch die Spiegelung im Wasser passt logisch und physikalisch nicht exakt zur Form der Berge darüber. KI erfindet oft eigene Muster, wenn sie Reflexionen berechnet."
+            },
+            {
+                image: "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&auto=format&fit=crop",
+                isAi: false,
+                explanation: "Dieses Bild ist echt! Eine wuselige Marktszene mit dutzenden Personen. KIs produzieren in solchen unübersichtlichen Menschenmengen extrem oft verschmolzene Gliedmaßen oder irreale, schwebende Köpfe. Hier ist alles intakt."
+            },
+            {
+                image: "assets/pope_puffer.png",
+                isAi: true,
+                explanation: "KI-generiert! (Check: Kontext). Eines der berühmtesten Deepfakes: Der Papst würde keine solche Jacke als Straßenkleidung tragen. Zudem verraten sich an den Fingern, Gesicht und Hals kleine Glättungsfehler und merkwürdige Kantenübergänge."
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+
+        function renderQuiz() {
+            const progress = document.getElementById('quiz-progress');
+            const img = document.getElementById('quiz-image');
+            const buttons = document.getElementById('quiz-buttons');
+            const feedback = document.getElementById('quiz-feedback');
+            const resultScreen = document.getElementById('quiz-result-screen');
+            
+            if (currentQuizIndex >= customQuizData.length) {
+                progress.style.display = 'none';
+                document.getElementById('quiz-image-wrapper').style.display = 'none';
+                buttons.style.display = 'none';
+                feedback.style.display = 'none';
+                
+                document.getElementById('quiz-final-score').textContent = quizScore;
+                document.getElementById('quiz-total-score').textContent = customQuizData.length;
+                resultScreen.style.display = 'block';
+                return;
+            }
+
+            progress.style.display = 'block';
+            progress.textContent = `Bild ${currentQuizIndex + 1} von ${customQuizData.length}`;
+            
+            document.getElementById('quiz-image-wrapper').style.display = 'flex';
+            img.src = customQuizData[currentQuizIndex].image;
+            
+            buttons.style.display = 'flex';
+            feedback.style.display = 'none';
+            resultScreen.style.display = 'none';
+        }
+
+        function guessQuiz(userGuessedAi) {
+            const data = customQuizData[currentQuizIndex];
+            const isCorrect = userGuessedAi === data.isAi;
+            if (isCorrect) quizScore++;
+
+            const feedback = document.getElementById('quiz-feedback');
+            const title = document.getElementById('quiz-feedback-title');
+            const text = document.getElementById('quiz-feedback-text');
+            const buttons = document.getElementById('quiz-buttons');
+
+            buttons.style.display = 'none';
+            feedback.style.display = 'block';
+            
+            if (isCorrect) {
+                title.innerHTML = "✅ Richtig!";
+                title.style.color = "#4ade80";
+            } else {
+                title.innerHTML = "❌ Leider falsch!";
+                title.style.color = "#ef4444";
+            }
+
+            text.textContent = data.explanation;
+        }
+
+        function nextQuizStep() {
+            currentQuizIndex++;
+            renderQuiz();
+        }
+
+        function randomizeQuizSequence() {
+            // Mix up the array using a simple and universally supported random sort
+            customQuizData.sort(() => Math.random() - 0.5);
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            randomizeQuizSequence();
+            renderQuiz();
+            document.getElementById('result-page').style.display = 'none'; // Verstecke das Resultat beim Neustart
+        }
+
+        // --- Resultat-Seite Logik für PDF-Druck ---
+        function preparePrintData() {
+            const task1Text = document.getElementById('student-answer').value;
+            const printTarget1 = document.getElementById('print-task1-answer');
+            printTarget1.textContent = task1Text.trim() !== '' ? task1Text : "(Keine Bildbeschreibung eingegeben)";
+            
+            const task2Element = document.getElementById('student-guess');
+            const task2Text = task2Element ? task2Element.value : "";
+            const printTarget2 = document.getElementById('print-task2-guess');
+            if (printTarget2) {
+                printTarget2.textContent = task2Text.trim() !== '' ? task2Text : "(Keine Vermutung aufgeschrieben)";
+            }
+
+            const task3Summary = document.getElementById('student-summary') ? document.getElementById('student-summary').value : "";
+            const printTargetSummary = document.getElementById('print-task3-summary');
+            if (printTargetSummary) {
+                printTargetSummary.textContent = task3Summary.trim() !== '' ? task3Summary : "(Keine Zusammenfassung verfasst)";
+            }
+
+            const task4Element = document.getElementById('student-checklist');
+            const task4Text = task4Element ? task4Element.value : "";
+            const printTarget4 = document.getElementById('print-task4-checklist');
+            if (printTarget4) {
+                printTarget4.textContent = task4Text.trim() !== '' ? task4Text : "(Keine persönliche Checkliste erstellt)";
+            }
+            
+            document.getElementById('print-quiz-score').textContent = quizScore + "/" + customQuizData.length;
+        }
+
+        window.addEventListener('beforeprint', () => {
+            // Immer aktuelle Ergebnisse ins versteckte Print-Layout laden, bevor das PDF generiert wird
+            preparePrintData();
+        });
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            // Verhindert, dass der Browser Formular-Daten bei einem "Soft Refresh" einfach wieder einfügt
+            const task1Input = document.getElementById('student-answer');
+            if (task1Input) task1Input.value = '';
+            
+            const task2Input = document.getElementById('student-guess');
+            if (task2Input) task2Input.value = '';
+            
+            const task3Input = document.getElementById('student-summary');
+            if (task3Input) task3Input.value = '';
+
+            const task4Input = document.getElementById('student-checklist');
+            if (task4Input) task4Input.value = '';
+
+            if (typeof checkUnlockInputs === 'function') {
+                checkUnlockInputs();
+            }
+            if (typeof checkSummaryInput === 'function') {
+                checkSummaryInput();
+            }
+
+            // Setzt Score strikt auf 0, mischt neu und startet visual rendering
+            restartQuiz();
+        });
+    </script>
+</body>
+</html>
