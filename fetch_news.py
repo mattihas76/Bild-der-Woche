@@ -24,9 +24,14 @@ def fetch_and_save():
             # Filtere Artikel heraus, die EXPLIZIT nur für Sek I sind
             if 'sek i' in text_lower and 'sek ii' not in text_lower:
                 continue
+            # Filtere Making-of Artikel heraus
+            if 'making-of' in text_lower or 'making of' in text_lower:
+                continue
 
             target_url = href if href.startswith('http') else url + href
-            target_title = re.sub(r'<[^>]+>', '', text).strip()
+            raw_title = re.sub(r'<[^>]+>', '', text).strip()
+            # Entferne angehängte Metadaten wie "Sek I Sek II dd.mm.yyyy, UseTheNews"
+            target_title = re.sub(r'(Sek\s+I+\s*)*(\d{2}\.\d{2}\.\d{4})?[,\s]*(UseTheNews)?\s*$', '', raw_title).strip()
             if '/category/' not in target_url:
                 break
 
@@ -86,8 +91,12 @@ def fetch_and_save():
             
     article_text = "\n\n".join(article_texts)
 
+    # Titel auch nochmal bereinigen
+    clean_title = target_title.replace('&#8211;', '-')
+    clean_title = re.sub(r'(Sek\s+I+\s*)*(\d{2}\.\d{2}\.\d{4})?[,\s]*(UseTheNews)?\s*$', '', clean_title).strip()
+
     data = {
-        "title": target_title.replace('&#8211;', '-'),
+        "title": clean_title,
         "imageUrl": img_url,
         "articleUrl": target_url,
         "articleText": article_text

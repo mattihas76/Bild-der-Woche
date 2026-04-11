@@ -2,8 +2,9 @@ name: Weekly News Scraper
 
 on:
   schedule:
-    # Führt das Script jeden Freitag um 14:15 Uhr UTC aus (entspricht 16:15 Uhr in der Schweiz/Deutschland)
-    - cron: '15 14 * * 5'
+    # Führt das Script jeden Freitag um 16:30 Uhr UTC aus (entspricht 18:30 Uhr Schweiz/Deutschland)
+    # Das "Bild der Woche" wird freitags ab 18:00 Uhr veröffentlicht
+    - cron: '30 16 * * 5'
   workflow_dispatch: # Erlaubt den manuellen Start über die GitHub-Oberfläche
 
 jobs:
